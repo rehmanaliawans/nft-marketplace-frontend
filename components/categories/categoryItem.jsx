@@ -10,7 +10,7 @@ import { buyModalShow, setCategoryItem } from "../../redux/counterSlice";
 import axios from "axios";
 
 const CategoryItem = () => {
-  const { sortedtrendingCategoryItemData } = useSelector(
+  const { sortedtrendingCategoryItemData, buyModal } = useSelector(
     (state) => state.counter
   );
   const [data, setData] = useState([]);
@@ -29,7 +29,7 @@ const CategoryItem = () => {
   };
   useEffect(() => {
     loadMarketplaceItems();
-  }, []);
+  }, [buyModal]);
   console.log("data", { data });
   return (
     <div className="grid grid-cols-1 gap-[1.875rem] md:grid-cols-2 lg:grid-cols-4">

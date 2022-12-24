@@ -28,21 +28,25 @@ const BuyModal = () => {
     const { marketplace, nft, address, status } = await loadContracts();
     console.log({ marketplace });
 
-    const priceFormatted = ethers.utils.parseUnits(payload.id, "ether");
-    console.log({ priceFormatted });
-    const totalPrice = await marketplace?.getTotalPrice(
-      ethers.utils.parseUnits(payload?.id, "ether")
-    );
+    // const priceFormatted = ethers.utils.parseUnits(payload.id, "ether");
+    // console.log({ priceFormatted });
+    // const totalPrice = await marketplace?.getTotalPrice(
+    //   ethers.utils.parseUnits(payload?.id, "ether")
+    // );
 
     //   const price = payload?.price;
     //   const value = Number(price * 1e18)
     //   console.log(totalPrice)
     // //   console.log(payload?.id);
-
-    await (
-      await marketplace.purchaseItem(payload?.id, { value: totalPrice })
-    ).wait();
-    removeFromMarketplace(payload?._id, address);
+    try {
+      console.log("a;;", payload);
+      const res = await (await marketplace.purchaseItem(payload?.id)).wait();
+      console.log("response called", res);
+      dispatch(buyModalHide());
+      removeFromMarketplace(payload?._id, address);
+    } catch (err) {
+      console.log("error call", err);
+    }
 
     console.log(status);
   };
