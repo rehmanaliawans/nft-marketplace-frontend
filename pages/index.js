@@ -16,9 +16,5 @@ export default function Home() {
     };
   });
 
-  return (
-    <div>
-      <Home_1 />
-    </div>
-  );
+  return <Home_1 />;
 }

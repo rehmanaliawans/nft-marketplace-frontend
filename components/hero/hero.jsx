@@ -1,34 +1,38 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { Logintrue } from "../../redux/counterSlice";
 
-const hero = () => {
+const Hero = () => {
   const dispatch = useDispatch();
   const { loggedin } = useSelector((state) => state.counter);
-  if (typeof window !== "undefined") {
-    console.log("call");
-    if (localStorage.getItem("Useraddress")) {
-      console.log("callagain");
-      dispatch(Logintrue());
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("call");
+      if (localStorage.getItem("Useraddress")) {
+        console.log("callagain");
+        dispatch(Logintrue());
+      }
     }
-  }
+  }, [loggedin]);
+
   return (
     <section className="relative pb-10 pt-20 md:pt-32 h-1527">
-      <picture className="pointer-events-none absolute inset-x-0 top-0 -z-10 block dark:hidden h-full">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 block dark:hidden h-full">
         <img
           src="/images/gradient.jpg"
           alt="gradient"
           className="h-full w-full"
         />
-      </picture>
-      <picture className="pointer-events-none absolute inset-x-0 top-0 -z-10 hidden dark:block">
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 hidden dark:block">
         <img
           src="/images/gradient_dark.jpg"
           alt="gradient dark"
           className="h-full w-full"
         />
-      </picture>
+      </div>
 
       <div className="container h-full mx-auto">
         <div className="grid h-full items-center gap-4 md:grid-cols-12">
@@ -41,14 +45,12 @@ const hero = () => {
               non-fungible tokens
             </p>
             <div className="flex space-x-4">
-              {loggedin ? (
+              {loggedin && (
                 <Link href="/create">
                   <a className="bg-accent shadow-accent-volume hover:bg-accent-dark w-36 rounded-full py-3 px-8 text-center font-semibold text-white transition-all">
                     Upload
                   </a>
                 </Link>
-              ) : (
-                <span></span>
               )}
 
               <Link href="/collection/explore_collection">
@@ -80,4 +82,4 @@ const hero = () => {
   );
 };
 
-export default hero;
+export default Hero;

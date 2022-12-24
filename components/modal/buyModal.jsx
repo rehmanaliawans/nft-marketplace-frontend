@@ -5,7 +5,7 @@ import { buyModalHide } from "../../redux/counterSlice";
 import { Confirm_checkout } from "../metamask/Metamask";
 import { loadContracts } from "../../contractABI/interact.js";
 import axios from "axios";
-
+import { ethers } from "ethers";
 const BuyModal = () => {
   const { buyModal, categoryItemstate } = useSelector((state) => state.counter);
   const { payload } = categoryItemstate;
@@ -26,9 +26,13 @@ const BuyModal = () => {
 
   const buyMarketItem = async () => {
     const { marketplace, nft, address, status } = await loadContracts();
-    console.log(marketplace);
+    console.log({ marketplace });
 
-    const totalPrice = await marketplace?.getTotalPrice(payload?.id);
+    const priceFormatted = ethers.utils.parseUnits(payload.id, "ether");
+    console.log({ priceFormatted });
+    const totalPrice = await marketplace?.getTotalPrice(
+      ethers.utils.parseUnits(payload?.id, "ether")
+    );
 
     //   const price = payload?.price;
     //   const value = Number(price * 1e18)

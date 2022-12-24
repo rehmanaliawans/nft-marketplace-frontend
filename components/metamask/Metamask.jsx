@@ -167,7 +167,7 @@ const Metamask_comp_login = () => {
       setIsConnected(true);
 
       console.log("axios call");
-      const req = await axios
+      axios
         .post("http://localhost:5500/user/login", {
           address: accounts[0],
           balance: bal
@@ -177,7 +177,6 @@ const Metamask_comp_login = () => {
           localStorage.setItem("Useraddress", accounts[0]);
           localStorage.setItem("UserBalance", bal);
           dispatch(Logintrue());
-          console.log(req);
           router.push("/");
         })
         .catch((err) => {
