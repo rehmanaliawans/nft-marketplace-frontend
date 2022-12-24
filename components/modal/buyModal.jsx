@@ -27,7 +27,11 @@ const BuyModal = () => {
   const buyMarketItem = async () => {
     const { marketplace, nft, address, status } = await loadContracts();
     console.log({ marketplace });
-
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const adns = await provider.getCode(
+      "0xfe1759AAA4B49C623951099D57e46Cf9fa98B875"
+    );
+    console.log(adns);
     // const priceFormatted = ethers.utils.parseUnits(payload.id, "ether");
     // console.log({ priceFormatted });
     // const totalPrice = await marketplace?.getTotalPrice(
@@ -36,11 +40,20 @@ const BuyModal = () => {
 
     //   const price = payload?.price;
     //   const value = Number(price * 1e18)
-    //   console.log(totalPrice)
+    // console.log(totalPrice);
     // //   console.log(payload?.id);
+    console.log({ payload });
     try {
       console.log("a;;", payload);
-      const res = await (await marketplace.purchaseItem(payload?.id)).wait();
+      // const totalPrice = await marketplace.getTotalPrice(payload?.id);
+      // console.log(totalPrice);
+      const listingPrice = ethers.utils.parseEther(payload.price.toString());
+
+      const res = await (
+        await marketplace.purchaseItem(payload?.id, {
+          value: listingPrice
+        })
+      ).wait();
       console.log("response called", res);
       dispatch(buyModalHide());
       removeFromMarketplace(payload?._id, address);
