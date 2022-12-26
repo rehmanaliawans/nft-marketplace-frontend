@@ -1,5 +1,5 @@
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { buyModalHide } from "../../redux/counterSlice";
 import { Confirm_checkout } from "../metamask/Metamask";
@@ -10,15 +10,22 @@ const BuyModal = () => {
   const { buyModal, categoryItemstate } = useSelector((state) => state.counter);
   const { payload } = categoryItemstate;
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    status: false,
+    message: ""
+  });
+  const [success, setSuccess] = useState({
+    status: false,
+    message: ""
+  });
 
   const removeFromMarketplace = async (id, address) => {
     try {
-      // console.log(address,id)
       const res = await axios.put(`http://localhost:5500/nft/createNft/${id}`, {
         isBuy: true,
         owner: address
       });
-      //console.log(res);
     } catch (err) {
       console.log(err);
     }
@@ -27,38 +34,34 @@ const BuyModal = () => {
   const buyMarketItem = async () => {
     const { marketplace, nft, address, status } = await loadContracts();
     console.log({ marketplace });
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const adns = await provider.getCode(
-      "0xfe1759AAA4B49C623951099D57e46Cf9fa98B875"
-    );
-    console.log(adns);
-    // const priceFormatted = ethers.utils.parseUnits(payload.id, "ether");
-    // console.log({ priceFormatted });
-    // const totalPrice = await marketplace?.getTotalPrice(
-    //   ethers.utils.parseUnits(payload?.id, "ether")
-    // );
 
-    //   const price = payload?.price;
-    //   const value = Number(price * 1e18)
-    // console.log(totalPrice);
-    // //   console.log(payload?.id);
     console.log({ payload });
     try {
+      setLoading(true);
       console.log("a;;", payload);
-      // const totalPrice = await marketplace.getTotalPrice(payload?.id);
-      // console.log(totalPrice);
-      const listingPrice = ethers.utils.parseEther(payload.price.toString());
+      // console.log("items", marketplace.items());
+      const totalPrice = await marketplace.getTotalPrice(payload?.id);
+      console.log(totalPrice);
 
-      const res = await (
+      await (
         await marketplace.purchaseItem(payload?.id, {
-          value: listingPrice
+          value: totalPrice
         })
       ).wait();
-      console.log("response called", res);
+      setSuccess({
+        status: status,
+        message: "Successfully Purchase NFT"
+      });
+      // console.log("response called", res);
       dispatch(buyModalHide());
       removeFromMarketplace(payload?._id, address);
     } catch (err) {
       console.log("error call", err);
+      setLoading(false);
+      setError({
+        status: true,
+        message: err.message
+      });
     }
 
     console.log(status);

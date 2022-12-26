@@ -17,6 +17,7 @@ import { pinJSONToIPFS } from "../../contractABI/pinata.js";
 import { loadContracts } from "../../contractABI/interact.js";
 import axios from "axios";
 import Link from "next/link";
+import Router, { useRouter } from "next/router";
 
 const Create = () => {
   const fileTypes = [
@@ -32,8 +33,19 @@ const Create = () => {
     "GLB",
     "GLTF"
   ];
+
+  const router = useRouter();
   const { loggedin } = useSelector((state) => state.counter);
   const [file, setFile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState({
+    status: false,
+    message: ""
+  });
+  const [success, setSuccess] = useState({
+    status: false,
+    message: ""
+  });
   // Input state where all user data stored
 
   const [input, setinput] = useState({
@@ -52,18 +64,26 @@ const Create = () => {
 
   const mintNFT = async () => {
     // Conditions of input state
+    console.log("error call", input);
     if (
-      input.name == "" &&
+      input.name == "" ||
       // input.FreezeMetadata == "" &&
-      input.price == "" &&
-      input.image == "" &&
+      input.price == "" ||
+      input.image == "" ||
       input.description == ""
     ) {
       // alert("Fill the all fields")
-      var element = document.getElementById("Error");
-      element.classList.remove("hidden");
+      setError({
+        status: true,
+        message: "Please fill all fields"
+      });
       return;
     }
+    setLoading(true);
+    setError({
+      status: false,
+      message: ""
+    });
 
     const { marketplace, nft, address, status } = await loadContracts();
 
@@ -75,84 +95,79 @@ const Create = () => {
     metadata.description = input.description;
 
     const pinataResponse = await pinJSONToIPFS(metadata);
+    console.log({ pinataResponse });
     if (!pinataResponse.success) {
-      console.log("Something went wrong while uploading your tokenURI.");
+      setError({
+        status: true,
+        message: "Something went wrong please Try again!"
+      });
+      return;
     }
     const tokenURI = pinataResponse.pinataUrl;
     console.log("image name", input.image.name);
     console.log("token url", tokenURI);
     console.log("price", input.price);
+    try {
+      const mint = await nft.mint(tokenURI);
+      // var nftId;
+      // console.log({ mint });
 
-    await nft.mint(tokenURI);
-    // var nftId;
-    await nft.setApprovalForAll(marketplace.address, true);
-    const id = await nft.tokenCount();
+      await nft.setApprovalForAll(marketplace.address, true);
+      // console.log("setApprovalForAll", setApprovalForAll);
 
-    // add nft to marketplace
-    const listingPrice = ethers.utils.parseEther(input.price.toString());
-    await marketplace.makeItem(nft.address, id, listingPrice);
-    // nftId = await marketplace.itemCount();
-    console.log("marketplace", id, listingPrice);
-    if (id) {
-      console.log("create call with id");
-      const formData = new FormData();
-      formData.append("id", id);
-      formData.append("name", input.name);
-      formData.append("price", input.price);
-      formData.append("nftImage", input.image);
-      formData.append("isBuy", false);
-      formData.append("owner", address);
+      const id = await nft.tokenCount();
+      console.log("id", id);
+      // add nft to marketplace
+      const listingPrice = ethers.utils.parseEther(input.price.toString());
 
-      await axios
-        .post("http://localhost:5500/nft/createNft", formData, {})
-        .then((response) => console.log("response", response))
-        .catch((err) => console.log("error", err));
-    }
-  };
+      console.log("listing", listingPrice);
+      const decimals = 18;
+      // Note: this is a string, e.g. user input
+      // const amount = ethers.utils.parseUnits(input.price.toString(), decimals);
+      // const amount = ethers.utils.parseUnits(input.price.toString(), "ether");
+      // console.log({ amount });
+      const makeItem = await marketplace.makeItem(
+        nft.address,
+        id,
+        listingPrice
+      );
+      // nftId = await marketplace.itemCount();
+      console.log("make item", makeItem);
+      // console.log("marketplace", id, listingPrice);
+      if (id) {
+        console.log("create call with id");
+        const formData = new FormData();
+        formData.append("id", id);
+        formData.append("name", input.name);
+        formData.append("price", input.price);
+        formData.append("nftImage", input.image);
+        formData.append("isBuy", false);
+        formData.append("owner", address);
 
-  const CreateNFT = async () => {
-    // Conditions of input state
-    if (
-      input.name == "" &&
-      input.FreezeMetadata == "" &&
-      input.image == "" &&
-      input.description == ""
-    ) {
-      // alert("Fill the all fields")
-      var element = document.getElementById("Error");
-      element.classList.remove("hidden");
-      return;
-    }
-    // document.getElementById("CreateButton").disabled = false;
-    // e.preventDefault();
-    // console.log("checking");
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        console.log("wait");
-        const ContractAddress = "0x4E8Ae93aFc9F173813308d4CDdFF2e2825c6B678";
-        const Provider = new ethers.providers.Web3Provider(window.ethereum);
-        const Signer = Provider.getSigner();
-        const _createnft = new ethers.Contract(
-          ContractAddress,
-          ContractABI,
-          Signer
+        const res = await axios.post(
+          "http://localhost:5500/nft/createNft",
+          formData,
+          {}
         );
-        const TX = await _createnft.createNFT(
-          input.name,
-          input.Blockchain,
-          input.FreezeMetadata,
-          "https://gateway.pinata.cloud/ipfs/",
-          input.description
-        );
-        await TX.wait();
-        console.log(TX);
-      } catch (err) {
-        console.log(err);
+
+        setSuccess({
+          status: true,
+          message: "Congratulations NFT created successfully!"
+        });
+        setLoading(false);
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+        console.log("res", res);
       }
-    } else {
-      console.log("Install MetaMask");
+    } catch (err) {
+      console.log("create error", err);
+      setLoading(false);
+      setError({
+        status: true,
+        message: "Something went wrong! Please try again"
+      });
     }
-    // console.log("checking");
   };
 
   // Get value from the collection component for the input.Collection
@@ -671,27 +686,61 @@ const Create = () => {
               {loggedin ? (
                 <span>
                   {" "}
-                  <button
-                    id="CreateButton"
-                    // onClick={CreateNFT}
-                    onClick={mintNFT}
-                    className=" bg-accent-lighter cursor-default rounded-full py-3 px-8 text-center font-semibold text-white transition-all"
-                  >
-                    Create
-                  </button>
-                  <p
-                    id="Error"
-                    className="hidden py-3 font-semibold text-red transition-all"
-                  >
-                    <span>kindly Fill all the fields</span>
-                  </p>
+                  {loading ? (
+                    <div role="status">
+                      <svg
+                        aria-hidden="true"
+                        className="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                        viewBox="0 0 100 101"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                          fill="currentFill"
+                        />
+                      </svg>
+                      <span className="text-green">
+                        Please wait your NFT creation take time!
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      id="CreateButton"
+                      // onClick={CreateNFT}
+                      onClick={mintNFT}
+                      className=" bg-accent-dark cursor-pointer rounded-full py-3 px-8 text-center font-semibold text-white transition-all"
+                    >
+                      Create
+                    </button>
+                  )}
+                  {error.status === true && (
+                    <p
+                      id="Error"
+                      className="py-3 font-semibold text-red transition-all"
+                    >
+                      <span>{error.message}</span>
+                    </p>
+                  )}
+                  {success.status === true && (
+                    <p
+                      id="Error"
+                      className="py-3 font-semibold text-green transition-all"
+                    >
+                      <span>{success.message}</span>
+                    </p>
+                  )}
                 </span>
               ) : (
                 <span className="flex space-x-3">
                   {" "}
                   <Link href="/login">
                     <a>
-                      <button className=" bg-accent-lighter cursor-default rounded-full py-3 px-8 text-center font-semibold text-white transition-all">
+                      <button className=" bg-accent-dark cursor-pointer rounded-full py-3 px-8 text-center font-semibold text-white transition-all">
                         Login
                       </button>{" "}
                     </a>

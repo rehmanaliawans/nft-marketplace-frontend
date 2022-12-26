@@ -7,16 +7,6 @@ const Hero = () => {
   const dispatch = useDispatch();
   const { loggedin } = useSelector((state) => state.counter);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      console.log("call");
-      if (localStorage.getItem("Useraddress")) {
-        console.log("callagain");
-        dispatch(Logintrue());
-      }
-    }
-  }, [loggedin]);
-
   return (
     <section className="relative pb-10 pt-20 md:pt-32 h-1527">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 block dark:hidden h-full">
