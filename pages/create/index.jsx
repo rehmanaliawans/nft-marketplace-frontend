@@ -108,31 +108,30 @@ const Create = () => {
     console.log("token url", tokenURI);
     console.log("price", input.price);
     try {
-      const mint = await nft.mint(tokenURI);
+      await nft.mint(tokenURI);
       // var nftId;
       // console.log({ mint });
 
-      await nft.setApprovalForAll(marketplace.address, true);
+      // await nft.setApprovalForAll(marketplace.address, true);
       // console.log("setApprovalForAll", setApprovalForAll);
 
       const id = await nft.tokenCount();
+      await nft.approve(marketplace.address, id);
       console.log("id", id);
       // add nft to marketplace
-      const listingPrice = ethers.utils.parseEther(input.price.toString());
+      const itemPrice = ethers.utils.parseEther(input.price.toString());
 
-      console.log("listing", listingPrice);
-      const decimals = 18;
+      console.log("listing", itemPrice);
+      // const decimals = 18;
       // Note: this is a string, e.g. user input
       // const amount = ethers.utils.parseUnits(input.price.toString(), decimals);
       // const amount = ethers.utils.parseUnits(input.price.toString(), "ether");
       // console.log({ amount });
-      const makeItem = await marketplace.makeItem(
-        nft.address,
-        id,
-        listingPrice
-      );
+      const makeItem = await marketplace.makeItem(nft.address, id, itemPrice);
       // nftId = await marketplace.itemCount();
       console.log("make item", makeItem);
+      await makeItem.wait();
+      console.log("waiting.... end");
       // console.log("marketplace", id, listingPrice);
       if (id) {
         console.log("create call with id");
@@ -161,7 +160,7 @@ const Create = () => {
         console.log("res", res);
       }
     } catch (err) {
-      console.log("create error", err);
+      console.log("create error", err.message);
       setLoading(false);
       setError({
         status: true,

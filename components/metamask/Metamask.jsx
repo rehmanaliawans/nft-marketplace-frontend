@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useMetaMask } from "metamask-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Logintrue, walletModalShow } from "../../redux/counterSlice";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -55,28 +55,37 @@ const Metamask_comp_text = () => {
 };
 
 const Metamask_comp_login = () => {
-  const [haveMetamask, setHaveMetamask] = useState(true);
+  const { loggedin } = useSelector((state) => state.counter);
+  const [haveMetamask, setHaveMetamask] = useState(false);
   const [accountAddress, setAccountAddress] = useState("");
   const [accountBalance, setAccountBalance] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-
+  const [error, setError] = useState({
+    status: false,
+    message: ""
+  });
   useEffect(() => {
     const { ethereum } = window;
+    console.log(ethereum);
     const checkMetamaskAvailability = async () => {
-      if (!ethereum) {
-        setHaveMetamask(false);
+      if (ethereum) {
+        setHaveMetamask(true);
       }
-      setHaveMetamask(true);
+      if (localStorage.getItem("userAddress")) {
+        setAccountAddress(localStorage.getItem("userAddress"));
+      }
     };
     checkMetamaskAvailability();
   }, []);
-  console.log(
-    "statuses",
-    { haveMetamask },
-    { accountBalance },
-    { accountAddress },
-    { isConnected }
-  );
+
+  // console.log(
+  //   "statuses",
+  //   { haveMetamask },
+  //   { accountBalance },
+  //   { accountAddress },
+  //   { isConnected }
+  // );
+
   // const { status, connect, account, chainId, ethereum } = useMetaMask();
   // console.log({ status, connect, account, chainId, ethereum });
 
@@ -166,24 +175,29 @@ const Metamask_comp_login = () => {
       setAccountBalance(bal);
       setIsConnected(true);
 
-      console.log("axios call");
       axios
         .post("http://localhost:5500/user/login", {
           address: accounts[0],
           balance: bal
         })
         .then((res) => {
-          console.log("logged in call", res);
-          localStorage.setItem("Useraddress", accounts[0]);
-          localStorage.setItem("UserBalance", bal);
+          localStorage.setItem("userAddress", accounts[0]);
+          localStorage.setItem("userBalance", bal);
           dispatch(Logintrue());
           router.push("/");
         })
         .catch((err) => {
-          console.log(err);
+          setError({
+            status: true,
+            message: err.message
+          });
           return;
         });
     } catch (error) {
+      setError({
+        status: true,
+        message: error.message
+      });
       setIsConnected(false);
     }
   };
@@ -215,13 +229,12 @@ const Metamask_comp_login = () => {
   //   //     console.log(err);
   //   //     return;
   //   //   });
-  //   // localStorage.setItem("Useraddress", account);
-  //   // localStorage.setItem("UserBalance", balance);
+  //   // localStorage.setItem("userAddress", account);
+  //   // localStorage.setItem("userBalance", balance);
   //   // dispatch(Logintrue());
   //   // console.log(req);
   //   // router.push("/");
   // };
-
   return (
     <>
       {haveMetamask ? (
@@ -234,23 +247,48 @@ const Metamask_comp_login = () => {
               <p>{accountBalance}</p>
             </div>
           ) : (
-            <button
-              className="js-wallet bg-accent hover:bg-accent-dark mb-4 flex w-full items-center justify-center rounded-full border-2 border-transparent py-4 px-8 text-center font-semibold text-white transition-all"
-              onClick={handleSubmit}
-            >
-              <Image
-                src="/images/wallets/metamask_24.svg"
-                className=" inline-block h-6 w-6"
-                alt=""
-                height={24}
-                width={24}
-              />
-              <span className="ml-2.5">Sign in with Metamask</span>
-            </button>
+            <>
+              <button
+                className="js-wallet bg-accent hover:bg-accent-dark mb-1 flex w-full items-center justify-center rounded-full border-2 border-transparent py-4 px-8 text-center font-semibold text-white transition-all"
+                onClick={handleSubmit}
+              >
+                <Image
+                  src="/images/wallets/metamask_24.svg"
+                  className=" inline-block h-6 w-6"
+                  alt=""
+                  height={24}
+                  width={24}
+                />
+                <span className="ml-2.5">Sign in with Metamask</span>
+              </button>
+              {error.status && (
+                <p className="text-red mx-auto max-w-md text-center text-small">
+                  {error.message}
+                </p>
+              )}
+              {loggedin && (
+                <p className="text-green mx-auto max-w-md text-center text-small">
+                  LoggedIn with address :{" "}
+                  <span className="text-red mx-auto max-w-md text-center text-small">
+                    {accountAddress.slice(0, 4)}...
+                    {accountAddress.slice(38, 42)}
+                  </span>
+                </p>
+              )}
+            </>
           )}
         </div>
       ) : (
-        <p>Install Meta Mask</p>
+        <button className="js-wallet opacity-50 cursor-not-allowed bg-red hover:bg-red-dark mb-1 flex w-full items-center justify-center rounded-full border-2 border-transparent py-4 px-8 text-center font-semibold text-white transition-all">
+          <Image
+            src="/images/wallets/metamask_24.svg"
+            className=" inline-block h-6 w-6"
+            alt=""
+            height={24}
+            width={24}
+          />
+          <span className="ml-2.5">First Install MetaMask</span>
+        </button>
       )}
     </>
   );
@@ -373,38 +411,38 @@ const Metamask_comp_icon = ({ prop }) => {
       </div>
     );
 
-  if (status === "notConnected")
-    return (
-      <button
-        className={
-          prop.asPath === "/home/home_3"
-            ? "js-wallet border-jacarta-100  focus:bg-accent group hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent border-transparent bg-white/[.15]"
-            : "js-wallet border-jacarta-100 hover:bg-accent focus:bg-accent group dark:hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent dark:border-transparent dark:bg-white/[.15]"
-        }
-        // onClick={() => dispatch(walletModalShow())}
-        onClick={connect}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          className={
-            prop.asPath === "/home/home_3"
-              ? " h-4 w-4 transition-colors group-hover:fill-white group-focus:fill-white fill-white"
-              : "fill-jacarta-700 h-4 w-4 transition-colors group-hover:fill-white group-focus:fill-white dark:fill-white"
-          }
-        >
-          <path fill="none" d="M0 0h24v24H0z"></path>
-          <path d="M22 6h-7a6 6 0 1 0 0 12h7v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2zm-7 2h8v8h-8a4 4 0 1 1 0-8zm0 3v2h3v-2h-3z"></path>
-        </svg>
-      </button>
-    );
+  // if (status === "notConnected")
+  //   return (
+  //     <button
+  //       className={
+  //         prop.asPath === "/home/home_3"
+  //           ? "js-wallet border-jacarta-100  focus:bg-accent group hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent border-transparent bg-white/[.15]"
+  //           : "js-wallet border-jacarta-100 hover:bg-accent focus:bg-accent group dark:hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent dark:border-transparent dark:bg-white/[.15]"
+  //       }
+  //       // onClick={() => dispatch(walletModalShow())}
+  //       onClick={connect}
+  //     >
+  //       <svg
+  //         xmlns="http://www.w3.org/2000/svg"
+  //         viewBox="0 0 24 24"
+  //         width="24"
+  //         height="24"
+  //         className={
+  //           prop.asPath === "/home/home_3"
+  //             ? " h-4 w-4 transition-colors group-hover:fill-white group-focus:fill-white fill-white"
+  //             : "fill-jacarta-700 h-4 w-4 transition-colors group-hover:fill-white group-focus:fill-white dark:fill-white"
+  //         }
+  //       >
+  //         <path fill="none" d="M0 0h24v24H0z"></path>
+  //         <path d="M22 6h-7a6 6 0 1 0 0 12h7v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2zm-7 2h8v8h-8a4 4 0 1 1 0-8zm0 3v2h3v-2h-3z"></path>
+  //       </svg>
+  //     </button>
+  //   );
 
   if (status === "connecting")
     return (
       <div>
-        <button
+        {/* <button
           className={
             prop.asPath === "/home/home_3"
               ? "js-wallet border-jacarta-100  focus:bg-accent group hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent border-transparent bg-white/[.15]"
@@ -426,20 +464,20 @@ const Metamask_comp_icon = ({ prop }) => {
             <path fill="none" d="M0 0h24v24H0z"></path>
             <path d="M22 6h-7a6 6 0 1 0 0 12h7v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2zm-7 2h8v8h-8a4 4 0 1 1 0-8zm0 3v2h3v-2h-3z"></path>
           </svg>
-        </button>
+        </button> */}
       </div>
     );
 
   if (status === "connected")
     return (
       <div>
-        <button
+        {/* <button
           className={
             prop.asPath === "/home/home_3"
               ? "js-wallet border-jacarta-100  focus:bg-accent group hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent border-transparent bg-white/[.15]"
               : "js-wallet border-jacarta-100 hover:bg-accent focus:bg-accent group dark:hover:bg-accent flex h-10 w-10 items-center justify-center rounded-full border bg-white transition-colors hover:border-transparent focus:border-transparent dark:border-transparent dark:bg-white/[.15]"
           }
-          onClick={() => dispatch(walletModalShow())}
+          onClick={walletIconBtn} //this is for wallet icon
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -455,7 +493,7 @@ const Metamask_comp_icon = ({ prop }) => {
             <path fill="none" d="M0 0h24v24H0z"></path>
             <path d="M22 6h-7a6 6 0 1 0 0 12h7v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v2zm-7 2h8v8h-8a4 4 0 1 1 0-8zm0 3v2h3v-2h-3z"></path>
           </svg>
-        </button>
+        </button> */}
       </div>
     );
 };

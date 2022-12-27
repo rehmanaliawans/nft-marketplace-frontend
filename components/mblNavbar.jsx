@@ -16,10 +16,9 @@ const MblNavbar = ({ theme }) => {
   const [navText, setnavText] = useState("");
 
   const handlesignout = () => {
-	  dispatch(Loginfalse());
-	  localStorage.clear()
-	  router.push('/login')
-
+    dispatch(Loginfalse());
+    localStorage.clear();
+    router.push("/login");
   };
   const handleItemDropdown = (e) => {
     const target = e.target.closest("li");
@@ -151,8 +150,8 @@ const MblNavbar = ({ theme }) => {
       id: 1,
       text: "home ",
       url: "/",
-      New: false,
-    },
+      New: false
+    }
   ];
 
   const pageTextData = [
@@ -160,131 +159,131 @@ const MblNavbar = ({ theme }) => {
       id: 9,
       text: "Case Studies",
       href: "/case-studies",
-      New: true,
+      New: true
     },
     {
       id: 10,
       text: "Single Case Study",
       href: "/case-studies/case_study_1",
-      New: true,
+      New: true
     },
     {
       id: 11,
       text: "Careers",
       href: "/careers",
-      New: true,
+      New: true
     },
     {
       id: 12,
       text: "Item Details",
       href: "/item/item_20",
-      New: false,
+      New: false
     },
     {
       id: 13,
       text: "Explore Collections",
       href: "/collection/explore_collection",
-      New: false,
+      New: false
     },
     {
       id: 14,
       text: "Collection",
       href: "/collection/avatar_1",
-      New: false,
+      New: false
     },
     {
       id: 15,
       text: "Activity",
       href: "/activity",
-      New: false,
+      New: false
     },
     {
       id: 16,
       text: "Rankings",
       href: "/rankings",
-      New: false,
+      New: false
     },
     {
       id: 17,
       text: "User",
       href: "/user/avatar_6",
-      New: false,
+      New: false
     },
     {
       id: 18,
       text: "Edit Profile",
       href: "/profile/user_avatar",
-      New: false,
+      New: false
     },
     {
       id: 19,
       text: "About",
       href: "/about",
-      New: false,
+      New: false
     },
     {
       id: 20,
       text: "Contact",
       href: "/contact",
-      New: false,
+      New: false
     },
     {
       id: 21,
       text: "Wallet",
       href: "/wallet",
-      New: false,
+      New: false
     },
     {
       id: 22,
       text: "Login",
       href: "/login",
-      New: false,
+      New: false
     },
     {
       id: 23,
       text: "Page 404",
       href: "/404",
-      New: false,
+      New: false
     },
     {
       id: 24,
       text: "Terms Of Service",
       href: "/tarms",
-      New: false,
-    },
+      New: false
+    }
   ];
 
   const resourcesData = [
     {
       id: 25,
       text: "Help Center",
-      href: "/help_center",
+      href: "/help_center"
     },
     {
       id: 26,
       text: "Platform Status",
-      href: "/platform_status",
+      href: "/platform_status"
     },
     {
       id: 27,
       text: "Partners",
-      href: "/partners",
+      href: "/partners"
     },
     {
       id: 28,
       text: "Blog",
-      href: "/blog",
+      href: "/blog"
     },
     {
       id: 29,
       text: "Single Post",
-      href: "/single_post/post_1",
+      href: "/single_post/post_1"
     },
     {
       id: 30,
       text: "Newsletter",
-      href: "/newsletter",
-    },
+      href: "/newsletter"
+    }
   ];
 
   return (
@@ -302,7 +301,7 @@ const MblNavbar = ({ theme }) => {
         <Link href="/">
           <a>
             <img
-              src="logo1"
+              src="/logo1"
               className="max-h-7 dark:hidden"
               alt="Blenny | NFT Marketplace"
             />
@@ -1006,8 +1005,8 @@ const MblNavbar = ({ theme }) => {
               <UserId
                 classes="js-copy-clipboard font-display text-jacarta-700 my-4 flex select-none items-center whitespace-nowrap px-5 leading-none dark:text-white"
                 userId={
-                  localStorage.getItem("Useraddress")
-                    ? localStorage.getItem("Useraddress")
+                  localStorage.getItem("userAddress")
+                    ? localStorage.getItem("userAddress")
                     : "0x7a86c0b064171007716bbd6af96676935799a63e "
                 }
                 shortId={true}
@@ -1022,8 +1021,8 @@ const MblNavbar = ({ theme }) => {
                     <use xlinkHref="/icons.svg#icon-ETH"></use>
                   </svg>
                   <span className="text-green text-lg font-bold">
-                    {localStorage.getItem("UserBalance")
-                      ? localStorage.getItem("UserBalance")
+                    {localStorage.getItem("userBalance")
+                      ? localStorage.getItem("userBalance")
                       : 10}
                     {/* 10 */}
                   </span>

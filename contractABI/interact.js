@@ -10,13 +10,13 @@ export const loadContracts = async () => {
 
   // Get deployed copies of contracts
   const marketplace = new ethers.Contract(
-    "0xCfDdE7d0C708Ed16046AFF4D9F74C2aB2aC07ca7",
+    "0x4A8a9eaC5f02a2Cff55fAE864B97408562416519",
     Marketplace.abi,
     signer
   );
   //setMarketplace(marketplace)
   const nft = new ethers.Contract(
-    "0x4EA3C64ac93c7A3b8A28De7C22b6f258D07Ae5E0",
+    "0x40bb4a67FF01BB90fE4ba7b5C03FC8312B3CbA6f",
     NFT.abi,
     signer
   );
